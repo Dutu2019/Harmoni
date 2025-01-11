@@ -78,7 +78,7 @@ export const Index = () => {
         </div>
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen">
           <h1 className="text-4xl md:text-6xl font-bold text-white text-center px-4">
-            Welcome to Floating Dreams
+            Harmoni
           </h1>
           <p className="absolute bottom-8 max-w-2xl text-center text-gray-300 px-4 italic">
             Offrir un espace sûr et anonyme où chaque étudiant peut partager ses préoccupations sans jugement et être écouté avec bienveillance.
