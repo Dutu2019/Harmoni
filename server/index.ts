@@ -44,9 +44,9 @@ db.serialize(() => {
     })
     db.run(`
     CREATE TABLE IF NOT EXISTS chat_messages (
-      message_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-      chat_id BIGINT NOT NULL,
-      user_id BIGINT NOT NULL,
+      message_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      chat_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
       message_text TEXT,
       timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
@@ -59,8 +59,9 @@ db.serialize(() => {
   })
   db.run(`
     CREATE TABLE IF NOT EXISTS chats (
-      chat_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-      student_id BIGINT NOT NULL
+      chat_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      student_id INTEGER NOT NULL,
+      student_username TEXT NOT NULL
   );
   `, (err) => {
     if (err) {
@@ -142,22 +143,148 @@ app.get("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully." });
 });
 
-app.post("/message", (req:any, res) => {
+app.post("/create-chat", (req:any, res) => {
   if (req.user) {
     if (req.user.role === "student") {
-      db.run(
-        "INSERT INTO chat_messages (chat_id, user_id, message_text) VALUES (?, ?, ?)",
-        [1, 1, req.body.message],
-        (err) => {
-          if (err) {
-            res.status(400).json({ message: "Error sending message." });
+      db.get("SELECT username FROM users WHERE id = ?", [req.user.id], (err, row:any) => {
+        db.run(
+          "INSERT INTO chats (student_id, student_username) VALUES (?, ?)",
+          [req.user.id, row.username],
+          (err) => {
+            if (err) {
+              res.status(400).json({ message: "Error creating chat." });
+            } else {
+              res.status(201).json({ message: "Chat created." });
+            }
+          }
+        );
+      })
+    }
+  } else {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+});
+
+app.get("/chat", (req:any, res) => {
+  if (req.user) {
+    if (req.user.role === "student") {
+      db.get(
+        "SELECT chat_id FROM chats WHERE student_id = ?",
+        [req.user.id],
+        (err, row:any) => {
+          if (row) {
+            res.sendStatus(200);
           } else {
-            res.status(201).json({ message: "Message sent." });
+            res.status(404).json({ message: "Chat not found." });
+          }
+        }
+      );
+    } else if (req.user.role === "helper") {
+      db.get(
+        "SELECT * FROM chats",
+        (err, rows:any) => {
+          if (rows) {
+            res.status(200).json(rows);
+          } else {
+            res.status(404).json({ message: "Chat not found." });
           }
         }
       );
     }
   } else {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+});
+
+app.post("/message", (req:any, res) => {
+  if (req.user) {
+    if (req.user.role === "student") {
+      db.get(
+        "SELECT chat_id FROM chats WHERE student_id = ?",
+        [req.user.id],
+        (err, row:any) => {
+          if (row) {
+            db.run(
+              "INSERT INTO chat_messages (chat_id, user_id, message_text) VALUES (?, ?, ?)",
+              [row.chat_id, req.user.id, req.body.message],
+              (err) => {
+                if (err) {
+                  res.status(400).json({ message: "Error sending message." });
+                } else {
+                  res.status(201).json({ message: "Message sent." });
+                }
+              }
+            );
+          } else if (err) {
+            console.log(err)
+          }
+        })
+    } else if (req.user.role === "helper") {
+      db.all(
+        "SELECT chat_id FROM chats",
+        (err, rows:any) => {
+          if (rows) {
+            db.run(
+              "INSERT INTO chat_messages (chat_id, user_id, message_text) VALUES (?, ?, ?)",
+              [rows[0].chat_id, req.user.id, req.body.message],
+              (err) => {
+                if (err) {
+                  res.status(400).json({ message: "Error sending message." });
+                } else {
+                  res.status(201).json({ message: "Message sent." });
+                }
+              }
+            );
+          } else if (err) {
+            console.log(err)
+          }
+        })
+    }
+  } else {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+});
+
+app.get("/message", (req:any, res) => {
+  if (req.user) {
+    if (req.user.role === "student") {
+      db.get(
+        "SELECT chat_id FROM chats WHERE student_id = ?",
+        [req.user.id],
+        (err, row:any) => {
+          if (row) {
+            db.all(
+              "SELECT * FROM chat_messages WHERE chat_id = ?",
+              [row.chat_id],
+              (err, rows) => {
+                const newRows = rows.map((row:any) => {
+                  if (row.user_id === req.user.id) {
+                    return {id: row.message_id, text: row.message_text, sender: "user", timestamp: row.timestamp};
+                  } else {
+                    return {id: row.message_id, text: row.message_text, sender: "other", timestamp: row.timestamp};
+                  }
+                });
+                res.status(200).json(newRows);
+              }
+            );
+          }
+        }
+      );
+    } else if (req.user.role === "helper") {
+      db.all(
+        "SELECT * FROM chat_messages",
+        (err, rows) => {
+          const newRows = rows.map((row:any) => {
+            if (row.user_id === req.user.id) {
+              return {id: row.message_id, text: row.message_text, sender: "user", timestamp: row.timestamp};
+            } else {
+              return {id: row.message_id, text: row.message_text, sender: "other", timestamp: row.timestamp};
+            }
+          });
+          res.status(200).json(newRows);
+        });
+      }
+    } else {
     res.status(401).json({ message: "Unauthorized" });
   }
 });

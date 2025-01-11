@@ -9,3 +9,4 @@ export async function postAPI(url: string, data: any) {
     const jsoned = await res.json();
   return {status: res.status, data: jsoned};
 }
+

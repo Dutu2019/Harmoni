@@ -5,16 +5,16 @@ export const userContext = createContext("");
 export default function UserContextProvider({children}) {
   const [data, setData] = useState({auth: false, user: null});
 
-  const fetchData = async () => {
+  const fetchData = () => {
     try {
-        const response = await fetch(`${import.meta.env.VITE_SERVER_API_URL}/login`, {
+        fetch(`${import.meta.env.VITE_SERVER_API_URL}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: 'include',
-        });
-        const result = await response.json();
-        console.log(result)
-        setData({auth: true, user: result});
+        })
+        .then(response => response.json()
+        .then(data => (setData({auth: true, user: data})))
+        )
     } catch (error) {
         console.error('Error fetching data:', error);
     }

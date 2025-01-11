@@ -1,16 +1,48 @@
 import ChatBox from "@/components/custom/ChatBox"
 import { userContext } from "@/contexts/userContext"
-import { useState, useContext } from "react"
+import { useState, useContext, useEffect } from "react"
 import { Cross } from "lucide-react";
 
 export default function Chat() {
     const [activeChat, setActiveChat] = useState(false);
     const data = useContext(userContext);
+    const fetchChat = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_SERVER_API_URL}/chat`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials: 'include',
+            });
+            if (response.ok) {
+                setActiveChat(true);
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+    }
+    };
+    useEffect(() => {
+        fetchChat();
+    }, []);
+
     const user = data.data.user;
     if (!user) {
         return <h1>Loading...</h1>
     }
-    console.log(user);
+
+    const createChat = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_SERVER_API_URL}/create-chat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: 'include',
+            });
+            const result = await response.json();
+        } catch (error) {
+            console.error('Error fetching data:', error);
+    }
+    setActiveChat(true);
+}
+    
   return (
     <>
         <section>
@@ -24,12 +56,11 @@ export default function Chat() {
                     </p>
                     {activeChat ? 
                     <ChatBox /> :
-                    <button onClick={() => setActiveChat(true)} className="flex gap-2 mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-5 px-6 rounded">
+                    <button onClick={createChat} className="flex gap-2 mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-5 px-6 rounded">
                        <Cross/> Start Chat
                     </button>
                     }
-                </div> :
-                <ChatBox />
+                </div> : <ChatBox />
             }
 
         </section>

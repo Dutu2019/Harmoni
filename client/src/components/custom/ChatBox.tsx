@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,27 +15,30 @@ const ChatBox = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      const message: Message = {
-        id: messages.length + 1,
-        text: newMessage,
-        sender: "user",
-        timestamp: new Date(),
-      };
-      setMessages([...messages, message]);
-      setNewMessage("");
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const res = await fetch(`${import.meta.env.VITE_SERVER_API_URL}/message`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const recieved = await res.json();
+      if (recieved != messages) {
+        setMessages(recieved);
+      }
+    }, 200);
+    return () => clearInterval(interval);
+  }, []);
 
-      // Simulate response
-      setTimeout(() => {
-        const response: Message = {
-          id: messages.length + 2,
-          text: "Thanks for your message! This is a demo response.",
-          sender: "other",
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, response]);
-      }, 1000);
+  const handleSendMessage = async () => {
+    if (newMessage.trim()) {
+      const res = await fetch(`${import.meta.env.VITE_SERVER_API_URL}/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ message: newMessage }),
+      });
+      setNewMessage("");
     }
   };
 
@@ -60,7 +63,7 @@ const ChatBox = () => {
       <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-xl shadow-xl border border-purple-200 dark:border-purple-900 h-[calc(100%-8rem)] animate-scale-in">
         <ScrollArea className="h-[calc(100%-5rem)] p-6">
           <div className="space-y-6">
-            {messages.map((message) => (
+            {messages[1] && messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${
@@ -76,7 +79,7 @@ const ChatBox = () => {
                 >
                   <p className="leading-relaxed">{message.text}</p>
                   <span className="text-xs opacity-70 mt-2 block">
-                    {message.timestamp.toLocaleTimeString()}
+                    {message.timestamp}
                   </span>
                 </div>
               </div>

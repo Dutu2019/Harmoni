@@ -7,6 +7,7 @@ import Index from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Chat from "./pages/Chat";
+import Schedule from "./pages/Schedule";
 import NavBar from "./components/custom/NavBar";
 
 const App = () => (
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/chat" element={<Chat />} />
+          <Route path="/schedule" element={<Schedule />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
