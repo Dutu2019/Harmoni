@@ -54,7 +54,7 @@ export const FloatingBubble = ({ word, delay, initialX, initialY }: FloatingBubb
   );
 };
 
-const words = ["Hope", "Confidence", "Support", "Empathy", "Courage", "Health"];
+const words = ["Hope", "Confidence", "Support", "Empathy", "Courage", "Health", "Love", "Strength", "Kindness", "Resilience"];
 
 export const Index = () => {
     const [mounted, setMounted] = useState(false);
@@ -70,9 +70,9 @@ export const Index = () => {
             <FloatingBubble 
               key={word} 
               word={word}
-              delay={index * 0.5}
+              delay={index * 10}
               initialX={Math.random() * 100}
-              initialY={120 + Math.random() * 20} // Start below the viewport
+              initialY={120 + Math.random() * 50} // Start below the viewport
             />
           ))}
         </div>

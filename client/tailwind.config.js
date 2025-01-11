@@ -18,10 +18,6 @@ export default {
 		},
 		extend: {
 			colors: {
-				'bubble-purple': '#E5DEFF',
-				'bubble-pink': '#FFDEE2',
-				'bubble-blue': '#D3E4FD',
-				'bubble-peach': '#FDE1D3',
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
