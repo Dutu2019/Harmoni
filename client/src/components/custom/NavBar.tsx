@@ -21,9 +21,9 @@ const NavBar = () => {
   return (
     <nav className="bg-[#221F26] text-white">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <span className="text-xl font-bold">Logo</span>
+        <div className="relative flex justify-between h-16">
+          <div className="relative flex items-center">
+            <img src="Harmoni.jpg" alt="Website Icon" className='object-contain h-16 select-none'/>
           </div>
 
           {/* Mobile menu button */}
