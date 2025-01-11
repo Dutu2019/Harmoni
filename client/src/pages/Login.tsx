@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { userContext } from "@/contexts/userContext";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +16,28 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const context = useContext(userContext);
 
-  function handleSubmit(e: React.FormEvent) {
-    console.log("Form submitted");
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setIsLoading(true);
+    const res = await fetch(`${import.meta.env.VITE_SERVER_API_URL}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: 'include',
+      body: JSON.stringify({ username: username, password: password, rememberMe: rememberMe }),
+    })
+    if (res.ok) {
+      toast({ title: "Signed in successfully!" });
+      context.setData({ auth: true, user: await res.json() });
+      navigate("/");
+    } else if (res.status === 401) {
+      setIsLoading(false);
+      toast({ title: "Invalid username or password." });
+    } else {
+      setIsLoading(false);
+      toast({ title: "Server error. We're sorry for the inconvenience." });
+    }
   };
 
   return (
@@ -73,13 +93,6 @@ export default function Login() {
                 Remember me
               </Label>
             </div>
-            {/* <button
-              type="button"
-              className="text-sm text-purple-600 hover:text-purple-500"
-              onClick={() => console.log("Forgot password clicked")}
-            >
-              Forgot password?
-            </button> */}
           </div>
 
           <Button

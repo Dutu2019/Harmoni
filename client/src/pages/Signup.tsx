@@ -3,24 +3,37 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-export default function Signup() {
+function Signup() {
   const [username, setUsername] = useState("");
   const [password1, setPassword1] = useState("");
   const [password2, setPassword2] = useState("");
+  const [role, setRole] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  function handleSubmit(e: React.FormEvent) {
-    console.log("Form submitted");
-    navigate("/");
-  };
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setIsLoading(true);
+    const res = await fetch(`${import.meta.env.VITE_SERVER_API_URL}/signup`, {
+      method: "POST", 
+      headers: {"Content-Type": "application/json"}, 
+      body: JSON.stringify({username: username, password: password1, role: role})
+    });
+    const data = await res.json();
+    if (res.ok) {
+      toast({title: "Account created successfully!"});
+      navigate("/login");
+    } else {
+      setIsLoading(false);
+      toast({title: data.message});
+    }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-purple-50 p-4">
@@ -81,6 +94,17 @@ export default function Signup() {
             </div>
           </div>
 
+          <RadioGroup defaultValue="" onValueChange={setRole}>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="student" id="student" />
+              <Label htmlFor="student">Student</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="helper" id="helper" />
+              <Label htmlFor="helper">Helper</Label>
+            </div>
+        </RadioGroup>
+
           <Button
             type="submit"
             className="w-full bg-purple-600 hover:bg-purple-700"
@@ -93,3 +117,4 @@ export default function Signup() {
     </div>
   );
 }
+export default Signup;
